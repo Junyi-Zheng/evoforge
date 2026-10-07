@@ -1,4 +1,5 @@
 import json
+import py_compile
 import tempfile
 import unittest
 from dataclasses import asdict, replace
@@ -9,7 +10,7 @@ from evoforge.archive import Archive
 from evoforge.benchmarks import builtin_suite, safe_path, suite_dict, validate_suite
 from evoforge.budget import BudgetExceeded, Ledger
 from evoforge.evaluation import Evaluator, equal
-from evoforge.genome import InvalidGenome, ablate, apply_edits, read_genome, validate, write_genome
+from evoforge.genome import InvalidGenome, ablate, apply_edits, read_genome, read_seed, validate, write_genome
 from evoforge.models import Case, Config, Limits, Usage, canonical
 from evoforge.providers import ChatProvider, ProviderFailure, parse_object
 from evoforge.sandbox import RuntimeFailure, Sandbox
@@ -63,6 +64,21 @@ class GenomeTests(unittest.TestCase):
             root = Path(tmp) / 'genome'
             write_genome(root, genome)
             self.assertEqual(Sandbox('local', '').invoke('step', root, {}), 42)
+
+    def test_packaged_seed_with_installer_bytecode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            package = Path(tmp)
+            root = package / 'seed'
+            write_genome(root, self.seed)
+            cache = root / '__pycache__'
+            cache.mkdir()
+            py_compile.compile(str(root / 'agent.py'), cfile=str(cache / 'agent.pyc'), doraise=True)
+            self.assertTrue((root / '__pycache__').is_dir())
+            with patch('evoforge.genome.resources.files', return_value=package):
+                self.assertEqual(read_seed(), self.seed)
+            # Archived and user-provided genomes retain their exact-file contract.
+            with self.assertRaises(InvalidGenome):
+                read_genome(root)
 
 
 class BudgetTests(unittest.TestCase):

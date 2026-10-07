@@ -6,6 +6,7 @@ jobs:
   controller:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ['3.9', '3.12']
     steps:

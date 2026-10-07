@@ -14,7 +14,7 @@ from .archive import Archive, artifact_hashes, controller_hash, file_hash
 from .benchmarks import builtin_suite, load_suite, suite_dict
 from .budget import BudgetExceeded, Ledger
 from .evaluation import ACTION_CONTRACT, Evaluator
-from .genome import ALLOWED_IMPORTS, COMPONENTS, InvalidGenome, ablate, apply_edits, fingerprints, read_genome, write_genome
+from .genome import ALLOWED_IMPORTS, COMPONENTS, InvalidGenome, ablate, apply_edits, fingerprints, read_genome, read_seed, write_genome
 from .models import Config, Evaluation, atomic_json, digest
 from .providers import ChatProvider, DemoProvider, ProviderFailure
 from .sandbox import RuntimeFailure, Sandbox
@@ -47,7 +47,7 @@ class Engine:
         if config.backend == "local" and (suite or seed_dir):
             raise ValueError("Custom suites and genomes require Docker; local mode is for bundled fixtures only")
         tasks = load_suite(suite) if suite else builtin_suite(config.seed)
-        seed_genome = read_genome(seed_dir or Path(__file__).with_name("seed"))
+        seed_genome = read_genome(seed_dir) if seed_dir is not None else read_seed()
         archive = Archive(root, create=True)
         atomic_json(archive.root / "suite.json", suite_dict(tasks))
         state = {"version": 1, "status": "initializing", "config": asdict(config),

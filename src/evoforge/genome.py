@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import difflib
 import json
+from importlib import resources
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -25,6 +26,14 @@ def read_genome(path: Path) -> Dict[str, str]:
     if actual != set(FILES) or any(p.is_symlink() or p.is_dir() for p in path.iterdir()):
         raise InvalidGenome("A genome must contain exactly the five regular genome files")
     genome = {name: (path / name).read_text(encoding="utf-8") for name in FILES}
+    validate(genome)
+    return genome
+
+
+def read_seed() -> Dict[str, str]:
+    # Installers may compile package data into __pycache__; load only the seed manifest.
+    root = resources.files("evoforge").joinpath("seed")
+    genome = {name: root.joinpath(name).read_text(encoding="utf-8") for name in FILES}
     validate(genome)
     return genome
 
