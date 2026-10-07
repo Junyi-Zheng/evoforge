@@ -1,0 +1,29 @@
+name: checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  controller:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.9', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install .
+      - run: python -m unittest discover -s tests -v
+      - run: evoforge demo --output runs/ci --rounds 5 --seal
+      - run: evoforge audit runs/ci
+  container:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: docker build -t evoforge-runtime:local -f runtime/Dockerfile runtime
+      - run: EVOFORGE_DOCKER_TESTS=1 PYTHONPATH=src python -m unittest discover -s tests -p 'test_docker.py' -v

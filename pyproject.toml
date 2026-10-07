@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evoforge-lab"
+version = "0.1.0"
+description = "A reproducible laboratory for evolving coding agent programs"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+license = {text = "MIT"}
+
+[project.scripts]
+evoforge = "evoforge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+
+[tool.setuptools.package-data]
+evoforge = ["assets/*", "seed/*"]

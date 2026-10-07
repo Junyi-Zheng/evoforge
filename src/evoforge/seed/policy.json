@@ -1,0 +1,4 @@
+{
+  "verify_before_finish": false,
+  "max_context_chars": 12000
+}
